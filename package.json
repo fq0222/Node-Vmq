@@ -1,0 +1,22 @@
+{
+  "name": "node-vmq-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Vmq 现代化重构工作区",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev -w apps/api",
+    "dev:web": "npm run dev -w apps/web",
+    "check:api": "node --check apps/api/src/server.js && node --check apps/api/src/app.js && node --check apps/api/src/config/env.js && node --check apps/api/src/routes/index.js && node --check apps/api/src/routes/health.routes.js && node --check apps/api/src/utils/logger.js && node --check apps/api/src/middleware/error-handler.js && node --check apps/api/src/middleware/not-found.js && node --check apps/api/src/database/client.js && node --check apps/api/src/database/default-settings.js && node --check apps/api/src/database/migrator.js && node --check apps/api/src/database/initializer.js",
+    "check:shared": "node --check packages/shared/src/index.js && node --check packages/shared/src/constants/system.js",
+    "check:web": "node --check apps/web/vite.config.js && node --check apps/web/src/main.js && node --check apps/web/src/router/index.js",
+    "check": "npm run check:api && npm run check:shared && npm run check:web"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}

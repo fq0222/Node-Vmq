@@ -1,0 +1,7 @@
+{
+  "name": "@node-vmq/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Node-Vmq 共享常量与工具",
+  "main": "src/index.js"
+}
