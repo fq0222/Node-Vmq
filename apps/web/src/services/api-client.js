@@ -4,7 +4,7 @@
  */
 const API_BASE_URL =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) ||
-  'http://127.0.0.1:3000';
+  'http://localhost:3000';
 
 let unauthorizedHandler = null;
 
@@ -23,8 +23,12 @@ export function setUnauthorizedHandler(handler) {
 export async function requestJson(path, options = {}) {
   const requestUrl = `${API_BASE_URL}${path}`;
   const hasBody = Object.prototype.hasOwnProperty.call(options, 'body');
+  const isFormData =
+    typeof FormData !== 'undefined' && hasBody && options.body instanceof FormData;
   const requestBody = hasBody && typeof options.body !== 'string'
-    ? JSON.stringify(options.body)
+    ? isFormData
+      ? options.body
+      : JSON.stringify(options.body)
     : options.body;
 
   console.info('[TP-14][api] 发起请求', {
@@ -32,14 +36,16 @@ export async function requestJson(path, options = {}) {
     method: options.method || 'GET'
   });
 
+  const headers = {
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+    ...(options.headers || {})
+  };
+
   const response = await fetch(requestUrl, {
     ...options,
     credentials: options.credentials || 'include',
     body: requestBody,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {})
-    }
+    headers
   });
 
   if (response.status === 401 && typeof unauthorizedHandler === 'function') {

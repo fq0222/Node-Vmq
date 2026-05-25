@@ -13,7 +13,7 @@ import DocsView from '../views/admin/DocsView.vue';
 import { ROUTE_META } from './route-meta.js';
 
 /**
- * 完整路由树
+ * 完整路由表
  * 将公开路由与后台受保护路由集中定义，便于后续持续扩展。
  */
 export const routes = [
@@ -28,7 +28,7 @@ export const routes = [
     meta: {
       access: ROUTE_META.PUBLIC,
       title: '后台登录',
-      description: '当前为 TP-13 阶段的占位登录入口。'
+      description: ''
     }
   },
   {
@@ -46,7 +46,7 @@ export const routes = [
           access: ROUTE_META.PROTECTED,
           title: 'Dashboard',
           description: '后台框架总览与后续模块挂载入口。',
-          eyebrow: 'TP-13'
+          eyebrow: '概览'
         }
       },
       {
@@ -56,8 +56,8 @@ export const routes = [
         meta: {
           access: ROUTE_META.PROTECTED,
           title: '系统设置',
-          description: '预留系统配置、二维码解析输入和全局参数编辑区域。',
-          eyebrow: 'TP-15'
+          description: '',
+          eyebrow: '后台'
         }
       },
       {
@@ -68,7 +68,7 @@ export const routes = [
           access: ROUTE_META.PROTECTED,
           title: '监控端',
           description: '预留监控端状态、绑定配置与 APK 接入信息。',
-          eyebrow: 'TP-16'
+          eyebrow: '监控'
         }
       },
       {
@@ -79,7 +79,7 @@ export const routes = [
           access: ROUTE_META.PROTECTED,
           title: '二维码管理',
           description: '预留微信和支付宝固定金额二维码的后台能力。',
-          eyebrow: 'TP-17'
+          eyebrow: '收款'
         }
       },
       {
@@ -90,7 +90,7 @@ export const routes = [
           access: ROUTE_META.PROTECTED,
           title: '订单管理',
           description: '预留订单查询、补单、筛选与删除操作入口。',
-          eyebrow: 'TP-18'
+          eyebrow: '订单'
         }
       },
       {
@@ -101,7 +101,7 @@ export const routes = [
           access: ROUTE_META.PROTECTED,
           title: 'API 文档',
           description: '预留旧版接口兼容文档的新后台承载页面。',
-          eyebrow: 'TP-19'
+          eyebrow: '文档'
         }
       }
     ]

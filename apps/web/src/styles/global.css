@@ -222,6 +222,7 @@ a {
 
 .admin-topbar__heading {
   flex-direction: column;
+  justify-content: center;
 }
 
 .admin-topbar__heading h1,
@@ -233,7 +234,6 @@ a {
   margin: 0;
 }
 
-.admin-topbar__heading p,
 .page-header p,
 .panel-card__header p,
 .info-card__hint,
@@ -262,14 +262,31 @@ a {
 }
 
 .admin-topbar__toggle {
-  padding: 12px 14px;
-  border-radius: 14px;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
   background: var(--vmq-primary-soft);
   color: var(--vmq-primary-strong);
-  font-weight: 600;
 }
 
-.admin-topbar__eyebrow,
+.admin-topbar__toggle svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.admin-topbar__toggle path {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
 .page-header__eyebrow,
 .login-view__eyebrow {
   font-size: 12px;
@@ -432,6 +449,145 @@ a {
   color: var(--vmq-text);
 }
 
+.settings-grid,
+.settings-qr-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-field--wide {
+  grid-column: 1 / -1;
+}
+
+.settings-field span,
+.settings-qr-card__header h3 {
+  font-weight: 600;
+  color: var(--vmq-text);
+}
+
+.settings-field input,
+.settings-field select,
+.settings-field textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--vmq-border-strong);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--vmq-text);
+  outline: none;
+  transition: border-color var(--vmq-transition), box-shadow var(--vmq-transition);
+  resize: vertical;
+}
+
+.settings-field input:focus,
+.settings-field select:focus,
+.settings-field textarea:focus {
+  border-color: rgba(23, 104, 255, 0.55);
+  box-shadow: 0 0 0 4px rgba(23, 104, 255, 0.12);
+}
+
+.settings-field__error {
+  color: #c03434;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.settings-alert {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.settings-alert--success {
+  background: rgba(26, 155, 107, 0.12);
+  color: #0e6c4a;
+}
+
+.settings-alert--error {
+  background: rgba(192, 52, 52, 0.1);
+  color: #b02f2f;
+}
+
+.settings-qr-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid var(--vmq-border);
+  border-radius: var(--vmq-radius-lg);
+  background: rgba(248, 251, 255, 0.88);
+}
+
+.settings-qr-card__status {
+  margin: 6px 0 0;
+  color: var(--vmq-text-soft);
+  line-height: 1.7;
+}
+
+.settings-qr-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-preview {
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  border: 1px dashed var(--vmq-border-strong);
+  border-radius: var(--vmq-radius-md);
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.settings-preview__image {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+}
+
+.settings-preview__empty {
+  color: var(--vmq-text-faint);
+  text-align: center;
+}
+
+.settings-save-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+}
+
+.settings-save-bar__button {
+  padding: 14px 20px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #1768ff, #3da1ff);
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform var(--vmq-transition), opacity var(--vmq-transition);
+}
+
+.settings-save-bar__button:hover {
+  transform: translateY(-1px);
+}
+
+.settings-save-bar__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+  transform: none;
+}
+
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -557,7 +713,8 @@ a {
 
   .admin-topbar,
   .page-header,
-  .table-toolbar {
+  .table-toolbar,
+  .settings-save-bar {
     flex-direction: column;
   }
 }
@@ -566,6 +723,8 @@ a {
   .stats-grid,
   .roadmap-grid,
   .placeholder-grid,
+  .settings-grid,
+  .settings-qr-grid,
   .login-view__actions {
     grid-template-columns: 1fr;
     display: grid;

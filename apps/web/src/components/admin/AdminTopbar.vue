@@ -1,13 +1,22 @@
 <template>
   <header class="admin-topbar">
     <div class="admin-topbar__left">
-      <button class="admin-topbar__toggle" type="button" @click="appStore.toggleSidebar()">
-        {{ appStore.sidebarCollapsed ? '展开导航' : '折叠导航' }}
+      <button
+        class="admin-topbar__toggle"
+        type="button"
+        :aria-label="appStore.sidebarCollapsed ? '展开导航' : '折叠导航'"
+        :title="appStore.sidebarCollapsed ? '展开导航' : '折叠导航'"
+        @click="appStore.toggleSidebar()"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3" y="5" width="18" height="2.2" rx="1.1"></rect>
+          <rect x="3" y="10.9" width="18" height="2.2" rx="1.1"></rect>
+          <rect x="3" y="16.8" width="18" height="2.2" rx="1.1"></rect>
+          <path :d="appStore.sidebarCollapsed ? 'M10 7l4 5-4 5' : 'M14 7l-4 5 4 5'"></path>
+        </svg>
       </button>
       <div class="admin-topbar__heading">
-        <span class="admin-topbar__eyebrow">{{ appStore.pageMeta.eyebrow }}</span>
         <h1>{{ appStore.pageMeta.title }}</h1>
-        <p>{{ appStore.pageMeta.description }}</p>
       </div>
     </div>
 
