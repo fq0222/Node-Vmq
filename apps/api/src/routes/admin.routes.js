@@ -11,6 +11,11 @@ const {
   saveSettingController,
   getMenuController
 } = require('../controllers/settings.controller');
+const {
+  addPayQrcodeController,
+  getPayQrcodesController,
+  delPayQrcodeController
+} = require('../controllers/pay-qrcode.controller');
 
 const router = express.Router();
 
@@ -29,5 +34,11 @@ router.get('/admin/getSettings', requireAdminSession, getSettingsController);
 router.post('/admin/getSettings', requireAdminSession, getSettingsController);
 router.get('/admin/saveSetting', requireAdminSession, saveSettingController);
 router.post('/admin/saveSetting', requireAdminSession, saveSettingController);
+router.get('/admin/getPayQrcodes', requireAdminSession, getPayQrcodesController);
+router.post('/admin/getPayQrcodes', requireAdminSession, getPayQrcodesController);
+router.get('/admin/addPayQrcode', requireAdminSession, addPayQrcodeController);
+router.post('/admin/addPayQrcode', requireAdminSession, addPayQrcodeController);
+router.get('/admin/delPayQrcode', requireAdminSession, delPayQrcodeController);
+router.post('/admin/delPayQrcode', requireAdminSession, delPayQrcodeController);
 
 module.exports = router;
