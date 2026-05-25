@@ -12,7 +12,7 @@ const WORKSPACE_NAME = 'node-vmq';
 /**
  * 当前已完成的任务包标识
  */
-const CURRENT_STAGE = 'TP-11';
+const CURRENT_STAGE = 'TP-12';
 
 module.exports = {
   WORKSPACE_NAME,

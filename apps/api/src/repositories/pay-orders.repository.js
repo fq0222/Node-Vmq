@@ -1,6 +1,6 @@
 /**
  * 订单仓储模块
- * 统一封装 pay_orders 表读写逻辑，避免业务层直接拼接 SQL
+ * 统一封装 pay_orders 表读写与统计逻辑，避免业务层直接拼接 SQL
  */
 
 const { createLogger } = require('../utils/logger');
@@ -35,7 +35,45 @@ from pay_orders`;
  * @returns {object} 订单仓储对象
  */
 function createPayOrdersRepository(db) {
+  /**
+   * 按条件统计订单数量
+   * @param {string} whereClause - where 子句
+   * @param {Array<number>} params - SQL 参数
+   * @returns {Promise<number>} 统计数量
+   */
+  async function countByWhere(whereClause, params) {
+    const result = await db.query(
+      `select count(*)::int as count
+      from pay_orders
+      ${whereClause}`,
+      params
+    );
+    return result.rows[0]?.count || 0;
+  }
+
+  /**
+   * 按条件汇总订单金额
+   * 统计口径保持与原项目一致，使用 price 字段而非 really_price
+   * @param {string} whereClause - where 子句
+   * @param {Array<number>} params - SQL 参数
+   * @returns {Promise<number|null>} 汇总金额
+   */
+  async function sumPriceByWhere(whereClause, params) {
+    const result = await db.query(
+      `select sum(price)::numeric as amount
+      from pay_orders
+      ${whereClause}`,
+      params
+    );
+    return result.rows[0]?.amount == null ? null : Number(result.rows[0].amount);
+  }
+
   return {
+    /**
+     * 按 payId 查询订单
+     * @param {string} payId - 商户订单号
+     * @returns {Promise<Record<string, unknown>|null>} 订单记录
+     */
     async findByPayId(payId) {
       logger.info(`开始按 payId 查询订单，payId=${payId}`);
       const result = await db.query(
@@ -47,6 +85,11 @@ function createPayOrdersRepository(db) {
       return result.rows[0] || null;
     },
 
+    /**
+     * 按 orderId 查询订单
+     * @param {string} orderId - 平台订单号
+     * @returns {Promise<Record<string, unknown>|null>} 订单记录
+     */
     async findByOrderId(orderId) {
       logger.info(`开始按 orderId 查询订单，orderId=${orderId}`);
       const result = await db.query(
@@ -58,6 +101,11 @@ function createPayOrdersRepository(db) {
       return result.rows[0] || null;
     },
 
+    /**
+     * 按主键查询订单
+     * @param {number} id - 主键 ID
+     * @returns {Promise<Record<string, unknown>|null>} 订单记录
+     */
     async findById(id) {
       logger.info(`开始按 id 查询订单，id=${id}`);
       const result = await db.query(
@@ -69,6 +117,11 @@ function createPayOrdersRepository(db) {
       return result.rows[0] || null;
     },
 
+    /**
+     * 按支付时间查询订单
+     * @param {number} payDate - 支付时间
+     * @returns {Promise<Record<string, unknown>|null>} 订单记录
+     */
     async findByPayDate(payDate) {
       logger.info(`开始按 payDate 查询订单，payDate=${payDate}`);
       const result = await db.query(
@@ -80,6 +133,12 @@ function createPayOrdersRepository(db) {
       return result.rows[0] || null;
     },
 
+    /**
+     * 按实际金额与支付类型查询待支付订单
+     * @param {number|string} reallyPrice - 实际金额
+     * @param {number} type - 支付类型
+     * @returns {Promise<Record<string, unknown>|null>} 订单记录
+     */
     async findPendingByReallyPriceAndType(reallyPrice, type) {
       logger.info(`开始按金额与类型查询待支付订单，type=${type}，reallyPrice=${reallyPrice}`);
       const result = await db.query(
@@ -91,6 +150,11 @@ function createPayOrdersRepository(db) {
       return result.rows[0] || null;
     },
 
+    /**
+     * 分页查询订单列表
+     * @param {{page: number, limit: number, type: number|null, state: number|null}} filters - 查询条件
+     * @returns {Promise<{count: number, rows: Array<Record<string, unknown>>}>} 分页结果
+     */
     async findOrders(filters) {
       logger.info(`开始分页查询订单，page=${filters.page}，limit=${filters.limit}`);
 
@@ -137,6 +201,11 @@ function createPayOrdersRepository(db) {
       };
     },
 
+    /**
+     * 按关闭时间查询订单
+     * @param {number} closeDate - 关闭时间
+     * @returns {Promise<Array<Record<string, unknown>>>} 订单列表
+     */
     async findOrdersByCloseDate(closeDate) {
       logger.info(`开始按 closeDate 查询订单，closeDate=${closeDate}`);
       const result = await db.query(
@@ -147,6 +216,11 @@ function createPayOrdersRepository(db) {
       return result.rows;
     },
 
+    /**
+     * 批量关闭超时订单
+     * @param {{timeoutBefore: number, closeDate: number}} payload - 超时关单参数
+     * @returns {Promise<number>} 关闭数量
+     */
     async markTimeoutOrders(payload) {
       logger.info(`开始批量关闭超时订单，timeoutBefore=${payload.timeoutBefore}，closeDate=${payload.closeDate}`);
       const result = await db.query(
@@ -159,6 +233,11 @@ function createPayOrdersRepository(db) {
       return result.rowCount;
     },
 
+    /**
+     * 新增订单记录
+     * @param {Record<string, unknown>} payload - 订单数据
+     * @returns {Promise<void>}
+     */
     async createPayOrder(payload) {
       logger.info(`开始新增订单，orderId=${payload.orderId}`);
       await db.query(
@@ -189,6 +268,11 @@ function createPayOrdersRepository(db) {
       logger.info(`订单新增完成，orderId=${payload.orderId}`);
     },
 
+    /**
+     * 保存订单支付时间、关闭时间与状态
+     * @param {{id: number, payDate: number, closeDate: number, state: number}} payload - 订单更新数据
+     * @returns {Promise<void>}
+     */
     async savePayOrder(payload) {
       logger.info(`开始保存订单，id=${payload.id}`);
       await db.query(
@@ -208,6 +292,12 @@ function createPayOrdersRepository(db) {
       logger.info(`订单保存完成，id=${payload.id}`);
     },
 
+    /**
+     * 单独更新订单状态
+     * @param {number} id - 订单主键
+     * @param {number} state - 目标状态
+     * @returns {Promise<void>}
+     */
     async updateOrderState(id, state) {
       logger.info(`开始单独更新订单状态，id=${id}，state=${state}`);
       await db.query(
@@ -219,6 +309,11 @@ function createPayOrdersRepository(db) {
       logger.info(`订单状态更新完成，id=${id}，state=${state}`);
     },
 
+    /**
+     * 删除单条订单
+     * @param {number} id - 订单主键
+     * @returns {Promise<void>}
+     */
     async deleteOrderById(id) {
       logger.info(`开始删除单条订单，id=${id}`);
       await db.query(
@@ -228,6 +323,11 @@ function createPayOrdersRepository(db) {
       logger.info(`单条订单删除完成，id=${id}`);
     },
 
+    /**
+     * 按状态批量删除订单
+     * @param {number} state - 订单状态
+     * @returns {Promise<void>}
+     */
     async deleteOrdersByState(state) {
       logger.info(`开始按状态批量删除订单，state=${state}`);
       await db.query(
@@ -237,6 +337,11 @@ function createPayOrdersRepository(db) {
       logger.info(`按状态批量删除订单完成，state=${state}`);
     },
 
+    /**
+     * 删除指定时间之前的订单
+     * @param {number} threshold - 时间阈值
+     * @returns {Promise<void>}
+     */
     async deleteOrdersCreatedBefore(threshold) {
       logger.info(`开始删除指定时间前订单，threshold=${threshold}`);
       await db.query(
@@ -244,6 +349,61 @@ function createPayOrdersRepository(db) {
         [threshold]
       );
       logger.info(`删除指定时间前订单完成，threshold=${threshold}`);
+    },
+
+    /**
+     * 统计指定时间范围内的订单总数
+     * @param {number} startTime - 开始时间
+     * @param {number} endTime - 结束时间
+     * @returns {Promise<number>} 订单数量
+     */
+    async countOrdersByCreateDateRange(startTime, endTime) {
+      logger.info(`开始统计时间范围内订单总数，startTime=${startTime}，endTime=${endTime}`);
+      return countByWhere('where create_date >= $1 and create_date <= $2', [startTime, endTime]);
+    },
+
+    /**
+     * 统计指定时间范围内指定状态的订单数量
+     * @param {number} startTime - 开始时间
+     * @param {number} endTime - 结束时间
+     * @param {number} state - 订单状态
+     * @returns {Promise<number>} 订单数量
+     */
+    async countOrdersByCreateDateRangeAndState(startTime, endTime, state) {
+      logger.info(`开始统计时间范围内指定状态订单数量，startTime=${startTime}，endTime=${endTime}，state=${state}`);
+      return countByWhere('where create_date >= $1 and create_date <= $2 and state = $3', [startTime, endTime, state]);
+    },
+
+    /**
+     * 汇总指定时间范围内指定状态的订单金额
+     * @param {number} startTime - 开始时间
+     * @param {number} endTime - 结束时间
+     * @param {number} state - 订单状态
+     * @returns {Promise<number|null>} 汇总金额
+     */
+    async sumPricesByCreateDateRangeAndState(startTime, endTime, state) {
+      logger.info(`开始汇总时间范围内指定状态订单金额，startTime=${startTime}，endTime=${endTime}，state=${state}`);
+      return sumPriceByWhere('where create_date >= $1 and create_date <= $2 and state = $3', [startTime, endTime, state]);
+    },
+
+    /**
+     * 统计指定状态的订单数量
+     * @param {number} state - 订单状态
+     * @returns {Promise<number>} 订单数量
+     */
+    async countOrdersByState(state) {
+      logger.info(`开始统计指定状态订单数量，state=${state}`);
+      return countByWhere('where state = $1', [state]);
+    },
+
+    /**
+     * 汇总指定状态的订单金额
+     * @param {number} state - 订单状态
+     * @returns {Promise<number|null>} 汇总金额
+     */
+    async sumPricesByState(state) {
+      logger.info(`开始汇总指定状态订单金额，state=${state}`);
+      return sumPriceByWhere('where state = $1', [state]);
     }
   };
 }

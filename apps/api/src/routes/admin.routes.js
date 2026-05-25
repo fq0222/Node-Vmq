@@ -23,6 +23,7 @@ const {
   delGqOrderController,
   delLastOrderController
 } = require('../controllers/callback-admin.controller');
+const { getMainController } = require('../controllers/stats.controller');
 
 const router = express.Router();
 
@@ -57,5 +58,7 @@ router.get('/admin/delGqOrder', requireAdminSession, delGqOrderController);
 router.post('/admin/delGqOrder', requireAdminSession, delGqOrderController);
 router.get('/admin/delLastOrder', requireAdminSession, delLastOrderController);
 router.post('/admin/delLastOrder', requireAdminSession, delLastOrderController);
+router.get('/admin/getMain', requireAdminSession, getMainController);
+router.post('/admin/getMain', requireAdminSession, getMainController);
 
 module.exports = router;
