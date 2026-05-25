@@ -11,6 +11,7 @@ const authRoutes = require('./auth.routes');
 const adminRoutes = require('./admin.routes');
 const qrcodeRoutes = require('./qrcode.routes');
 const orderRoutes = require('./order.routes');
+const monitorRoutes = require('./monitor.routes');
 
 const router = express.Router();
 
@@ -23,7 +24,7 @@ const router = express.Router();
 router.get('/', (req, res) => {
   res.json(success({
     stage: CURRENT_STAGE,
-    module: '订单核心模块'
+    module: '监控端兼容模块'
   }, 'Node-Vmq API 已启动'));
 });
 
@@ -41,5 +42,8 @@ router.use('/', qrcodeRoutes);
 
 // 注册订单核心接口
 router.use('/', orderRoutes);
+
+// 注册监控端兼容接口
+router.use('/', monitorRoutes);
 
 module.exports = router;
