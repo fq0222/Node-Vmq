@@ -9,6 +9,7 @@ const { success } = require('../utils/response');
 const healthRoutes = require('./health.routes');
 const authRoutes = require('./auth.routes');
 const adminRoutes = require('./admin.routes');
+const qrcodeRoutes = require('./qrcode.routes');
 
 const router = express.Router();
 
@@ -21,7 +22,7 @@ const router = express.Router();
 router.get('/', (req, res) => {
   res.json(success({
     stage: CURRENT_STAGE,
-    module: '认证与后台会话'
+    module: '二维码工具模块'
   }, 'Node-Vmq API 已启动'));
 });
 
@@ -33,5 +34,8 @@ router.use('/', authRoutes);
 
 // 注册后台接口
 router.use('/', adminRoutes);
+
+// 注册二维码工具接口
+router.use('/', qrcodeRoutes);
 
 module.exports = router;
