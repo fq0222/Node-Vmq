@@ -2,7 +2,7 @@
  * 路由守卫工具文件
  * 负责封装后台受保护路由的访问判定和全局守卫注册逻辑。
  */
-import { isAuthenticated } from '../utils/auth-storage.js';
+import { useAuthStore } from '../stores/auth.js';
 import { ROUTE_META } from './route-meta.js';
 
 /**
@@ -34,17 +34,18 @@ export function evaluateRouteAccess({ isLoggedIn, to }) {
 
 /**
  * 注册全局鉴权守卫
- * 关键跳转会在控制台输出日志，方便联调时快速定位路由问题。
+ * 守卫统一从 auth store 读取真实登录态，避免继续依赖本地 token。
  */
-export function registerAuthGuard(router) {
+export function registerAuthGuard(router, pinia) {
   router.beforeEach((to) => {
+    const authStore = useAuthStore(pinia);
     const result = evaluateRouteAccess({
-      isLoggedIn: isAuthenticated(),
+      isLoggedIn: authStore.loggedIn,
       to
     });
 
     if (!result.allow) {
-      console.info('[TP-13][router] 路由访问被重定向', {
+      console.info('[TP-14][router] 路由访问被重定向', {
         from: to.path,
         redirectTo: result.redirectTo
       });

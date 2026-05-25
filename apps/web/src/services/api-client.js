@@ -2,7 +2,9 @@
  * API 基础地址
  * 允许通过环境变量覆盖，便于后续联调不同环境。
  */
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:3000';
+const API_BASE_URL =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) ||
+  'http://127.0.0.1:3000';
 
 let unauthorizedHandler = null;
 
@@ -20,14 +22,20 @@ export function setUnauthorizedHandler(handler) {
  */
 export async function requestJson(path, options = {}) {
   const requestUrl = `${API_BASE_URL}${path}`;
+  const hasBody = Object.prototype.hasOwnProperty.call(options, 'body');
+  const requestBody = hasBody && typeof options.body !== 'string'
+    ? JSON.stringify(options.body)
+    : options.body;
 
-  console.info('[TP-13][api] 发起请求', {
+  console.info('[TP-14][api] 发起请求', {
     url: requestUrl,
     method: options.method || 'GET'
   });
 
   const response = await fetch(requestUrl, {
     ...options,
+    credentials: options.credentials || 'include',
+    body: requestBody,
     headers: {
       'Content-Type': 'application/json',
       ...(options.headers || {})
@@ -35,7 +43,7 @@ export async function requestJson(path, options = {}) {
   });
 
   if (response.status === 401 && typeof unauthorizedHandler === 'function') {
-    console.warn('[TP-13][api] 检测到未授权响应，准备执行统一处理');
+    console.warn('[TP-14][api] 检测到未授权响应，准备执行统一处理');
     unauthorizedHandler();
   }
 
@@ -44,14 +52,14 @@ export async function requestJson(path, options = {}) {
   try {
     data = await response.json();
   } catch (error) {
-    console.warn('[TP-13][api] 响应不是标准 JSON，将返回空数据', {
+    console.warn('[TP-14][api] 响应不是标准 JSON，将返回空数据', {
       message: error.message
     });
   }
 
   if (!response.ok) {
     const message = data?.message || `请求失败，状态码 ${response.status}`;
-    console.error('[TP-13][api] 请求失败', {
+    console.error('[TP-14][api] 请求失败', {
       url: requestUrl,
       status: response.status,
       message

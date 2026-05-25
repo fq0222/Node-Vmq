@@ -1,47 +1,95 @@
 <template>
   <main class="login-view">
     <section class="login-view__panel">
-      <span class="login-view__eyebrow">TP-13</span>
-      <h1>后台登录占位页</h1>
-      <p>
-        当前阶段只演示后台框架与鉴权拦截，不接真实登录接口。
-        你可以点击下面按钮写入模拟登录态，然后进入后台。
-      </p>
+      <h1>后台登录</h1>
 
-      <div class="login-view__actions">
-        <button type="button" class="login-view__primary" @click="handleMockLogin">
-          写入模拟登录态
+      <form class="login-form" @submit.prevent="handleSubmit">
+        <label class="login-form__field">
+          <span>管理账号</span>
+          <input
+            v-model.trim="form.user"
+            type="text"
+            name="user"
+            autocomplete="username"
+            placeholder="请输入后台账号"
+            :disabled="authStore.loading"
+          />
+        </label>
+
+        <label class="login-form__field">
+          <span>登录密码</span>
+          <input
+            v-model="form.pass"
+            type="password"
+            name="pass"
+            autocomplete="current-password"
+            placeholder="请输入登录密码"
+            :disabled="authStore.loading"
+          />
+        </label>
+
+        <p v-if="validationMessage || authStore.errorMessage" class="login-form__error">
+          {{ validationMessage || authStore.errorMessage }}
+        </p>
+
+        <button type="submit" class="login-view__primary" :disabled="authStore.loading">
+          {{ authStore.loading ? '登录中...' : '登录后台' }}
         </button>
-        <button type="button" class="login-view__secondary" @click="handleClear">
-          清理本地登录态
-        </button>
-      </div>
+      </form>
     </section>
   </main>
 </template>
 
 <script setup>
+import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth.js';
 
+/**
+ * 后台登录页面
+ * 负责提交真实登录请求，并在表单内联展示失败提示。
+ */
 const router = useRouter();
 const authStore = useAuthStore();
+const validationMessage = ref('');
+const form = reactive({
+  user: '',
+  pass: ''
+});
 
 /**
- * 写入模拟登录态并跳转后台
- * 关键处保留日志，方便确认路由守卫生效路径。
+ * 校验登录表单
+ * 仅保留本次必需的账号和密码非空校验。
  */
-function handleMockLogin() {
-  authStore.mockLogin();
-  console.info('[TP-13][login] 模拟登录成功，准备进入 Dashboard');
-  router.push('/dashboard');
+function validateForm() {
+  if (!form.user) {
+    return '请输入管理账号';
+  }
+
+  if (!form.pass) {
+    return '请输入登录密码';
+  }
+
+  return '';
 }
 
 /**
- * 清理本地登录态
- * 便于重复验证后台拦截行为。
+ * 提交真实登录请求
+ * 登录成功后进入后台首页，失败时在表单内联显示错误信息。
  */
-function handleClear() {
-  authStore.logout();
+async function handleSubmit() {
+  validationMessage.value = validateForm();
+  authStore.clearError();
+
+  if (validationMessage.value) {
+    return;
+  }
+
+  const success = await authStore.login(form);
+
+  if (success) {
+    console.info('[TP-14][login] 登录成功，准备跳转后台首页');
+    router.push('/dashboard');
+  }
 }
 </script>

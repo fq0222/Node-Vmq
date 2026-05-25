@@ -1,38 +1,43 @@
 /**
  * 前端应用启动入口文件
- * 负责初始化 Vue、Pinia、路由和后台登录态。
+ * 负责初始化 Vue、Pinia、路由、session 探测和统一未授权处理。
  */
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import App from './App.vue';
-import router from './router';
+import router, { initializeRouterGuards } from './router';
+import { setUnauthorizedHandler } from './services/api-client.js';
 import { useAuthStore } from './stores/auth.js';
 import './styles/global.css';
 
 /**
  * 启动前端应用
- * 这里保留清晰的初始化顺序，便于后续扩展真实登录与全局服务。
+ * 先完成会话探测与守卫初始化，再挂载应用，避免首屏误跳转。
  */
-function bootstrap() {
+async function bootstrap() {
   const app = createApp(App);
   const pinia = createPinia();
 
-  console.info('[TP-13][main] 正在初始化前端后台框架');
+  console.info('[TP-14][main] 正在初始化前端登录与鉴权流程');
 
-  // 注册状态管理
   app.use(pinia);
 
-  // 初始化登录态，确保路由守卫生效前拿到本地状态
   const authStore = useAuthStore(pinia);
-  authStore.bootstrap();
+  await authStore.bootstrap();
 
-  // 注册路由
+  initializeRouterGuards(pinia);
   app.use(router);
 
-  // 挂载应用
+  setUnauthorizedHandler(() => {
+    authStore.markLoggedOut('当前会话已失效，请重新登录');
+    if (router.currentRoute.value.path !== '/login') {
+      router.push('/login');
+    }
+  });
+
   app.mount('#app');
 
-  console.info('[TP-13][main] 前端后台框架启动完成');
+  console.info('[TP-14][main] 前端登录与鉴权流程初始化完成');
 }
 
 bootstrap();
