@@ -1,6 +1,6 @@
 /**
  * 后端服务启动入口
- * 负责加载配置、创建应用并启动 HTTP 服务
+ * 负责加载配置、创建应用、初始化数据库并启动 HTTP 服务
  */
 
 const { getEnvConfig } = require('./config/env');
@@ -8,6 +8,10 @@ const { createApp } = require('./app');
 const { createLogger } = require('./utils/logger');
 const { createDatabasePool } = require('./database/client');
 const { initializeDatabase } = require('./database/initializer');
+const { createSettingsRepository } = require('./repositories/settings.repository');
+const { createPayOrdersRepository } = require('./repositories/pay-orders.repository');
+const { createTmpPricesRepository } = require('./repositories/tmp-prices.repository');
+const { startScheduler } = require('./jobs/scheduler.service');
 
 const logger = createLogger('api:server');
 
@@ -31,7 +35,14 @@ async function bootstrap() {
     // 将数据库连接池挂载到应用实例，方便后续模块复用
     app.locals.db = databasePool;
 
-    // 第五步：启动监听服务
+    // 第五步：注册与原项目一致的 30 秒定时任务
+    startScheduler({
+      settingsRepository: createSettingsRepository(databasePool),
+      payOrdersRepository: createPayOrdersRepository(databasePool),
+      tmpPricesRepository: createTmpPricesRepository(databasePool)
+    });
+
+    // 第六步：启动监听服务
     app.listen(config.port, () => {
       logger.info(`${config.appName} 启动成功，监听端口 ${config.port}`);
     });

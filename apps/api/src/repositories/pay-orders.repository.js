@@ -137,6 +137,28 @@ function createPayOrdersRepository(db) {
       };
     },
 
+    async findOrdersByCloseDate(closeDate) {
+      logger.info(`开始按 closeDate 查询订单，closeDate=${closeDate}`);
+      const result = await db.query(
+        `${ORDER_SELECT_FIELDS}
+        where close_date = $1`,
+        [closeDate]
+      );
+      return result.rows;
+    },
+
+    async markTimeoutOrders(payload) {
+      logger.info(`开始批量关闭超时订单，timeoutBefore=${payload.timeoutBefore}，closeDate=${payload.closeDate}`);
+      const result = await db.query(
+        `update pay_orders
+        set state = -1, close_date = $2
+        where create_date < $1 and state = 0`,
+        [payload.timeoutBefore, payload.closeDate]
+      );
+      logger.info(`批量关闭超时订单完成，count=${result.rowCount}`);
+      return result.rowCount;
+    },
+
     async createPayOrder(payload) {
       logger.info(`开始新增订单，orderId=${payload.orderId}`);
       await db.query(
