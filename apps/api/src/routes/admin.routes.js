@@ -1,6 +1,6 @@
 /**
  * 后台管理路由模块
- * 提供后台会话、系统设置与菜单兼容接口
+ * 提供后台会话、系统设置、二维码、订单与补单兼容接口
  */
 
 const express = require('express');
@@ -16,6 +16,13 @@ const {
   getPayQrcodesController,
   delPayQrcodeController
 } = require('../controllers/pay-qrcode.controller');
+const {
+  getOrdersController,
+  setBdController,
+  delOrderController,
+  delGqOrderController,
+  delLastOrderController
+} = require('../controllers/callback-admin.controller');
 
 const router = express.Router();
 
@@ -40,5 +47,15 @@ router.get('/admin/addPayQrcode', requireAdminSession, addPayQrcodeController);
 router.post('/admin/addPayQrcode', requireAdminSession, addPayQrcodeController);
 router.get('/admin/delPayQrcode', requireAdminSession, delPayQrcodeController);
 router.post('/admin/delPayQrcode', requireAdminSession, delPayQrcodeController);
+router.get('/admin/getOrders', requireAdminSession, getOrdersController);
+router.post('/admin/getOrders', requireAdminSession, getOrdersController);
+router.get('/admin/setBd', requireAdminSession, setBdController);
+router.post('/admin/setBd', requireAdminSession, setBdController);
+router.get('/admin/delOrder', requireAdminSession, delOrderController);
+router.post('/admin/delOrder', requireAdminSession, delOrderController);
+router.get('/admin/delGqOrder', requireAdminSession, delGqOrderController);
+router.post('/admin/delGqOrder', requireAdminSession, delGqOrderController);
+router.get('/admin/delLastOrder', requireAdminSession, delLastOrderController);
+router.post('/admin/delLastOrder', requireAdminSession, delLastOrderController);
 
 module.exports = router;
