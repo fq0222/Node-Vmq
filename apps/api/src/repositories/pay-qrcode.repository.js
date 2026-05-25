@@ -9,24 +9,20 @@ const logger = createLogger('api:repo:pay-qrcode');
 
 /**
  * 创建固定金额二维码仓储
- * @param {import('pg').Pool} pool - 数据库连接池
+ * @param {{query: Function}} db - 数据库连接对象
  * @returns {{
  *   createPayQrcode: (payload: {payUrl: string, price: number, type: number}) => Promise<void>,
+ *   findByPriceAndType: (price: number, type: number) => Promise<Record<string, unknown>|null>,
  *   findPayQrcodes: (query: {page: number, limit: number, type: number|null}) => Promise<{count: number, rows: Array<Record<string, unknown>>}>,
  *   deletePayQrcodeById: (id: number) => Promise<void>
  * }} 固定金额二维码仓储
  */
-function createPayQrcodeRepository(pool) {
+function createPayQrcodeRepository(db) {
   return {
-    /**
-     * 新增固定金额二维码
-     * @param {{payUrl: string, price: number, type: number}} payload - 二维码数据
-     * @returns {Promise<void>}
-     */
     async createPayQrcode(payload) {
       logger.info(`开始新增固定金额二维码，type=${payload.type}，price=${payload.price}`);
 
-      await pool.query(
+      await db.query(
         'insert into pay_qrcodes(pay_url, price, type) values($1, $2, $3)',
         [payload.payUrl, payload.price, payload.type]
       );
@@ -34,11 +30,23 @@ function createPayQrcodeRepository(pool) {
       logger.info('固定金额二维码新增完成');
     },
 
-    /**
-     * 分页查询固定金额二维码
-     * @param {{page: number, limit: number, type: number|null}} query - 查询参数
-     * @returns {Promise<{count: number, rows: Array<Record<string, unknown>>}>} 分页结果
-     */
+    async findByPriceAndType(price, type) {
+      logger.info(`开始按金额和类型查询固定金额二维码，type=${type}，price=${price}`);
+      const result = await db.query(
+        `select
+          id,
+          pay_url as "payUrl",
+          price,
+          type
+        from pay_qrcodes
+        where type = $1 and price = $2
+        order by id asc
+        limit 1`,
+        [type, price]
+      );
+      return result.rows[0] || null;
+    },
+
     async findPayQrcodes(query) {
       logger.info(`开始分页查询固定金额二维码，page=${query.page}，limit=${query.limit}，type=${query.type ?? 'all'}`);
 
@@ -55,7 +63,7 @@ function createPayQrcodeRepository(pool) {
         : '';
 
       const countSql = `select count(*)::int as total from pay_qrcodes ${whereSql}`;
-      const countResult = await pool.query(countSql, values);
+      const countResult = await db.query(countSql, values);
 
       const offset = (query.page - 1) * query.limit;
       const listValues = [...values, query.limit, offset];
@@ -66,7 +74,7 @@ function createPayQrcodeRepository(pool) {
         `order by id desc limit $${listValues.length - 1} offset $${listValues.length}`
       ].filter(Boolean).join(' ');
 
-      const listResult = await pool.query(listSql, listValues);
+      const listResult = await db.query(listSql, listValues);
 
       logger.info(`固定金额二维码分页查询完成，count=${countResult.rows[0].total}`);
       return {
@@ -75,14 +83,9 @@ function createPayQrcodeRepository(pool) {
       };
     },
 
-    /**
-     * 按 id 删除固定金额二维码
-     * @param {number} id - 主键 id
-     * @returns {Promise<void>}
-     */
     async deletePayQrcodeById(id) {
       logger.info(`开始删除固定金额二维码，id=${id}`);
-      await pool.query('delete from pay_qrcodes where id = $1', [id]);
+      await db.query('delete from pay_qrcodes where id = $1', [id]);
       logger.info(`固定金额二维码删除完成，id=${id}`);
     }
   };
