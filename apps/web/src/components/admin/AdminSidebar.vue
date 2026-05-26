@@ -3,8 +3,7 @@
     <div class="admin-sidebar__brand">
       <div class="admin-sidebar__logo">VMQ</div>
       <div v-if="!appStore.sidebarCollapsed" class="admin-sidebar__brand-copy">
-        <strong>Node-Vmq</strong>
-        <span>Admin Framework</span>
+        <strong>{{ appTitle }}</strong>
       </div>
     </div>
 
@@ -46,4 +45,6 @@ import { useAppStore } from '../../stores/app.js';
  */
 const route = useRoute();
 const appStore = useAppStore();
+const appTitle =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_APP_TITLE) || 'Node-Vmq';
 </script>

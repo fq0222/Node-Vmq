@@ -449,6 +449,109 @@ a {
   color: var(--vmq-text);
 }
 
+.monitor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.monitor-toolbar__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.monitor-toolbar__heading h2 {
+  margin: 0;
+  font-size: 28px;
+  color: var(--vmq-text);
+}
+
+.monitor-toolbar__button {
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: rgba(23, 104, 255, 0.12);
+  color: var(--vmq-primary-strong);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform var(--vmq-transition), opacity var(--vmq-transition);
+}
+
+.monitor-toolbar__button:hover {
+  transform: translateY(-1px);
+}
+
+.monitor-toolbar__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+  transform: none;
+}
+
+.monitor-inline-error {
+  margin: 0;
+  color: #b02f2f;
+  font-size: 14px;
+}
+
+.monitor-access-grid,
+.monitor-binding-grid,
+.monitor-config-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.monitor-access-card,
+.monitor-qrcode,
+.monitor-binding-panel,
+.monitor-download {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.monitor-access-card {
+  padding: 18px;
+  border: 1px solid var(--vmq-border);
+  border-radius: var(--vmq-radius-lg);
+  background: rgba(248, 251, 255, 0.88);
+}
+
+.monitor-access-card__header h3 {
+  margin: 0;
+  color: var(--vmq-text);
+}
+
+.monitor-binding-panel__button {
+  width: fit-content;
+}
+
+.monitor-qrcode {
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  padding: 16px;
+  border: 1px dashed var(--vmq-border-strong);
+  border-radius: var(--vmq-radius-lg);
+  background: rgba(248, 251, 255, 0.88);
+}
+
+.monitor-qrcode img {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+}
+
+.monitor-binding-panel .settings-field textarea {
+  min-height: 110px;
+}
+
+.monitor-download__link {
+  display: inline-flex;
+  width: fit-content;
+}
+
 .settings-grid,
 .settings-qr-grid {
   display: grid;
@@ -723,6 +826,9 @@ a {
   .stats-grid,
   .roadmap-grid,
   .placeholder-grid,
+  .monitor-access-grid,
+  .monitor-binding-grid,
+  .monitor-config-grid,
   .settings-grid,
   .settings-qr-grid,
   .login-view__actions {

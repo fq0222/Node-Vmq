@@ -67,8 +67,8 @@ export const routes = [
         meta: {
           access: ROUTE_META.PROTECTED,
           title: '监控端',
-          description: '预留监控端状态、绑定配置与 APK 接入信息。',
-          eyebrow: '监控'
+          description: '',
+          eyebrow: '设备'
         }
       },
       {

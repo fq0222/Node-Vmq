@@ -2,11 +2,7 @@
  * 系统设置服务文件
  * 负责封装系统设置读取、保存、二维码解析和预览地址生成逻辑。
  */
-import { requestJson } from './api-client.js';
-
-const API_BASE_URL =
-  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) ||
-  'http://localhost:3000';
+import { getApiBaseUrl, requestJson } from './api-client.js';
 
 /**
  * 读取系统设置
@@ -65,5 +61,5 @@ export function buildQrcodePreviewUrl(text) {
     return '';
   }
 
-  return `${API_BASE_URL}/enQrcode?url=${encodeURIComponent(text)}`;
+  return `${getApiBaseUrl()}/enQrcode?url=${encodeURIComponent(text)}`;
 }

@@ -1,10 +1,19 @@
 /**
- * API 基础地址
- * 允许通过环境变量覆盖，便于后续联调不同环境。
+ * 解析 API 基础地址
+ * 优先使用环境变量；未配置时复用当前页面主机名，仅切换到后端端口，避免 localhost 与局域网 IP 混用导致会话丢失。
+ * @returns {string} 可直接请求的 API 基础地址
  */
-const API_BASE_URL =
-  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) ||
-  'http://localhost:3000';
+export function getApiBaseUrl() {
+  if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+
+  if (typeof window !== 'undefined' && window.location?.protocol && window.location?.hostname) {
+    return `${window.location.protocol}//${window.location.hostname}:3000`;
+  }
+
+  return 'http://localhost:3000';
+}
 
 let unauthorizedHandler = null;
 
@@ -21,7 +30,8 @@ export function setUnauthorizedHandler(handler) {
  * 当前阶段重点是建立模式、日志和错误处理边界。
  */
 export async function requestJson(path, options = {}) {
-  const requestUrl = `${API_BASE_URL}${path}`;
+  const apiBaseUrl = getApiBaseUrl();
+  const requestUrl = `${apiBaseUrl}${path}`;
   const hasBody = Object.prototype.hasOwnProperty.call(options, 'body');
   const isFormData =
     typeof FormData !== 'undefined' && hasBody && options.body instanceof FormData;
@@ -33,7 +43,8 @@ export async function requestJson(path, options = {}) {
 
   console.info('[TP-14][api] 发起请求', {
     url: requestUrl,
-    method: options.method || 'GET'
+    method: options.method || 'GET',
+    apiBaseUrl
   });
 
   const headers = {
