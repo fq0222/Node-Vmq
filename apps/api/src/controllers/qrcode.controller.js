@@ -1,6 +1,6 @@
 /**
- * 二维码控制器模块
- * 负责二维码工具接口的参数提取与响应编排
+ * 二维码控制器模块。
+ * 负责二维码工具接口的参数提取与响应组装，并透传可读错误信息便于前端排查。
  */
 
 const { createLogger } = require('../utils/logger');
@@ -14,7 +14,25 @@ const {
 const logger = createLogger('api:controller:qrcode');
 
 /**
- * 生成二维码接口控制器
+ * 统一提取控制器捕获到的错误信息。
+ * @param {unknown} caughtError - 捕获到的异常
+ * @param {string} fallbackMessage - 兜底提示文案
+ * @returns {string} 可返回给前端的错误信息
+ */
+function resolveDecodeErrorMessage(caughtError, fallbackMessage) {
+  if (caughtError instanceof Error && caughtError.message) {
+    return caughtError.message;
+  }
+
+  if (typeof caughtError?.message === 'string' && caughtError.message) {
+    return caughtError.message;
+  }
+
+  return fallbackMessage;
+}
+
+/**
+ * 生成二维码接口控制器。
  * @param {import('express').Request} req - 请求对象
  * @param {import('express').Response} res - 响应对象
  * @param {{createQrPngBuffer?: Function}} deps - 可注入依赖
@@ -31,7 +49,7 @@ async function enQrcodeController(req, res, deps = {}) {
 }
 
 /**
- * 解析 base64 二维码接口控制器
+ * 解析 base64 二维码接口控制器。
  * @param {import('express').Request} req - 请求对象
  * @param {import('express').Response} res - 响应对象
  * @param {{decodeQrFromBase64?: Function}} deps - 可注入依赖
@@ -47,13 +65,14 @@ async function deQrcodeController(req, res, deps = {}) {
     const text = await decodeQrFromBase64(base64);
     res.json(success(text));
   } catch (decodeError) {
-    logger.warn(`base64 二维码解析失败：${decodeError.message}`);
-    res.json(error('失败'));
+    const message = resolveDecodeErrorMessage(decodeError, '二维码解析失败');
+    logger.warn(`base64 二维码解析失败：${message}`);
+    res.json(error(message));
   }
 }
 
 /**
- * 解析上传文件二维码接口控制器
+ * 解析上传文件二维码接口控制器。
  * @param {import('express').Request} req - 请求对象
  * @param {import('express').Response} res - 响应对象
  * @param {{decodeQrFromFileBuffer?: Function}} deps - 可注入依赖
@@ -68,8 +87,9 @@ async function deQrcode2Controller(req, res, deps = {}) {
     const text = await decodeQrFromFileBuffer(req.file?.buffer);
     res.json(success(text));
   } catch (decodeError) {
-    logger.warn(`上传文件二维码解析失败：${decodeError.message}`);
-    res.json(error('失败'));
+    const message = resolveDecodeErrorMessage(decodeError, '二维码解析失败');
+    logger.warn(`上传文件二维码解析失败：${message}`);
+    res.json(error(message));
   }
 }
 

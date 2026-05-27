@@ -1,6 +1,6 @@
 /**
- * TP-06 二维码控制器测试
- * 先定义二维码接口的参数提取与响应行为，再补最小实现
+ * 二维码控制器测试。
+ * 约束二维码接口的参数提取、成功响应与失败信息透传行为。
  */
 
 const test = require('node:test');
@@ -102,5 +102,34 @@ test('解析上传文件接口应返回成功结果', async () => {
     code: 1,
     msg: '成功',
     data: 'decoded-file-text'
+  });
+});
+
+test('解析上传文件接口失败时应透传详细失败原因', async () => {
+  const req = {
+    file: {
+      buffer: Buffer.from('file-data')
+    }
+  };
+
+  let jsonPayload = null;
+
+  const res = {
+    json(payload) {
+      jsonPayload = payload;
+      return this;
+    }
+  };
+
+  await deQrcode2Controller(req, res, {
+    decodeQrFromFileBuffer: async () => {
+      throw new Error('二维码解析失败，已尝试5种图像方案');
+    }
+  });
+
+  assert.deepEqual(jsonPayload, {
+    code: -1,
+    msg: '二维码解析失败，已尝试5种图像方案',
+    data: null
   });
 });
